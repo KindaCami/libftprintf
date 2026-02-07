@@ -19,3 +19,5 @@ typedef struct s_flags
 
 t_flags *init_flags(t_flags *flags);
 int ft_printf(char const *str, ...);
+
+#endif
