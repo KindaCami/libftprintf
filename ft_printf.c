@@ -1,87 +1,56 @@
 
-/*#include "ft_printf.h"
-#include <stdio.h>
-#include <stdarg.h>
+#include "ft_printf.h"
 
-// Funcion de activacion de la estructura
 t_flags *init_flags(t_flags *flags)
 {
-    flags->plus = 0;
-    flags->dash = 0;
-    flags->hash = 0;
-    flags->space = 0;
-    flags->dot = 0;
-    flags->zero = 0;
-    flags->width = 0;
+    ft_memset(flags, 0, sizeof(t_flags));
     flags->precision = -1;
     return (flags);
 }
 
-int conversion_manager(const char *s, t_flags *flags)
+int format_type_manager(char c, t_flags *flags, va_list *args)
 {
-    while (*s == '-' || *s == '+' || *s == ' ' || *s == '#' || *s == '0')
-    {
-        if (*s == '-')
-            flags->dash = 1;
-        else if (*s == '+')
-            flags->plus = 1;
-        else if (*s == ' ')
-            flags->space = 1;
-        else if (*s == '#')
-            flags->hash = 1;
-        else if (*s == '0')
-            flags->zero = 1;
-        s++;
-    }
-
-
+    if (c == 'd' || c == 'i')
+        return (handle_int(flags, args));
+    else if (c == 's')
+        return (handle_string(flags, args));
+    else if (c == 'c')
+        return (handle_char(flags, args));
+    else if (c == 'u')
+        return (handle_unsigned(flags, args));
+    else if (c == 'x' || c == 'X')
+        return (handle_hex(flags, args, c));
+    else if (c == 'p')
+        return (handle_pointer(flags, args));
+    else if (c == '%')
+        return (handle_percent(flags));
+    return (0);
 }
 
 int ft_printf(char const *str, ...)
 {
     va_list args;
-    int total
+    t_flags flags;
+    int     count;
 
+    count = 0;
     va_start(args, str);
-    
     while (*str)
     {
         if (*str == '%')
         {
             str++;
-            //total += gestionar_conversion(*str, args);
+            if (!*str)
+                break ;
+            init_flags(&flags);
+            str = conversion_manager(str, &flags);
+            if  (*str)
+                count += format_type_manager(*str, &flags, &args);
         }
         else
-        // total += write(1, str, 1);
-        //str++;
+            count += write(1, str, 1);
+        str++;
     }
     va_end(args);
-    return (total);
-}*/
-
-#include "ft_printf.h" 
-
-int main() 
-{
-    int n = 42;
-    char *s = "42";
-
-    printf("--- 1. ANCHO (Width) ---\n");
-    printf("Sin ancho: [%d]\n", n);
-    printf("Ancho 10 : [%10d] (Reserva 10 espacios, alinea a la derecha)\n", n);
-
-    printf("\n--- 2. FLAGS BASICOS ---\n");
-    printf("Flag '-' : [%-10d] (Alinea a la izquierda dentro de los 10 espacios)\n", n);
-    printf("Flag '0' : [%010d] (Rellena con ceros en lugar de espacios)\n", n);
-    printf("Flag '+' : [%+d] (Fuerza a mostrar el signo +)\n", n);
-    printf("Flag ' ' : [% d] (Deja un espacio si el numero es positivo)\n", n);
-
-    printf("\n--- 3. PRECISION ---\n");
-    printf("Entero .5: [%.5d] (Minimo 5 digitos, rellena con ceros)\n", n);
-    printf("String .1: [%.1s] (Maximo 1 caracter)\n", s);
-
-    printf("\n--- 4. COMBINACIONES ---\n");
-    printf("Mezcla   : [%+10.5d] (Signo +, ancho 10, precision 5)\n", n);
-
-    return 0;
+    return (count);
 }
